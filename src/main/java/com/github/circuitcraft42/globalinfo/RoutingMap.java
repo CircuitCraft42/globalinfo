@@ -24,13 +24,24 @@ import java.lang.invoke.*;
 import java.util.*;
 
 /**
- * Hello world!
+ * A Map that routes gets to registered targets.
+ * @author Nathan
  *
  */
 public class RoutingMap extends AbstractMap<String,Object> {
 	
+	/**
+	 * A Source implementation that invokes a MethodHandle to retrieve the target.
+	 * @author Nathan
+	 *
+	 */
     private static class HandleSource implements Source<Object> {
         private MethodHandle handle;
+        
+        /**
+         * Constructs a new HandleSource using the specified handle as a target.
+         * @param handle the handle to be invoked on a get.
+         */
         public HandleSource(MethodHandle handle) {
             this.handle = handle;
         }
@@ -45,15 +56,38 @@ public class RoutingMap extends AbstractMap<String,Object> {
         }
     }
     
+    /**
+     * A Source is a target to be invoked within a RoutingMap.
+     * @author Nathan
+     *
+     * @param <T> The type returned by the Source
+     */
     public static interface Source<T> {
-        public T get();
+        /**
+         * Retrieves the value connected to this Source.
+         * There are no guarantees concerning determinism or thread-safety.
+         * @return the retrieved value
+         */
+    	public T get();
 
-        public static Source<Object> fromHandle(MethodHandle handle) {
+        /**
+         * Creates a Source that transparently invokes the specified MethodHandle.
+         * @param handle the handle to be invoked on get. It should take no parameters and return the retrieved value.
+         * @return
+         */
+    	public static Source<Object> fromHandle(MethodHandle handle) {
             return new HandleSource(handle);
         }
         
     }
     
+    /**
+     * A Source that supports selecting one of many potential sources to retrieve from on get.
+     * Potential end sources are added with register and a choice is made with select.
+     * @author Nathan
+     *
+     * @param <T> the return type of the Source
+     */
     public static class MultiSource<T> implements Source<T> {
     	
     	private Map<String, Source<T>> mappings = new HashMap<>();
@@ -64,11 +98,23 @@ public class RoutingMap extends AbstractMap<String,Object> {
 			return mappings.get(selection).get();
 		}
 		
+		/**
+		 * Registers a source to the MultiSource as a potential selection.
+		 * @param name the name this source will be selected with
+		 * @param source the source to be routed to if it is selected
+		 * @return this MultiSource, for chaining
+		 */
 		public MultiSource<T> register(String name, Source<T> source) {
 			mappings.put(name, source);
 			return this;
 		}
 		
+		/**
+		 * Selects a source for routing. A source can be selected before it is
+		 * added as long as it is chosen under the same name.
+		 * @param name
+		 * @return
+		 */
 		public MultiSource<T> select(String name) {
 			if(selection != null)
 				throw new IllegalStateException("cannot select a source multiple times");
@@ -81,6 +127,9 @@ public class RoutingMap extends AbstractMap<String,Object> {
 
     private Map<String, Source<Object>> mappings = new HashMap<>();
 
+    /**
+     * Constructor
+     */
     public RoutingMap() {}
 
     @Override
@@ -98,6 +147,12 @@ public class RoutingMap extends AbstractMap<String,Object> {
         return new SourceSet<String,Object>(mappings.entrySet());
     }
 
+    /**
+     * Registers a Source to be invoked when the name is retrieved.
+     * @param name the name to be registered under
+     * @param source the Source to be routed to
+     * @return whether the Source was registered successfully (false if name already exists)
+     */
     @SuppressWarnings("unchecked")
     public boolean register(String name, Source<?> source) {
         if(mappings.containsKey(name)) {
@@ -108,8 +163,21 @@ public class RoutingMap extends AbstractMap<String,Object> {
         return true;
     }
 
+    /**
+     * A Set implementation, just to implement the method on AbstractMap
+     * @author Nathan
+     *
+     * @param <K> Key type
+     * @param <V> Value type
+     */
     private class SourceSet<K,V> extends AbstractSet<Map.Entry<K,V>> {
+    	
         private Collection<Map.Entry<K,Source<V>>> source;
+        
+        /**
+         * Constructs a new SourceSet that iterates the given collection
+         * @param source the collection to be iterated over
+         */
         public SourceSet(Collection<Map.Entry<K,Source<V>>> source) {
             this.source = source;
         }
@@ -121,8 +189,20 @@ public class RoutingMap extends AbstractMap<String,Object> {
         public int size() {
             return mappings.size();
         }
+        
+        /**
+         * The iterator returned by the SourceSet iterator method
+         * @author Nathan
+         *
+         */
         private class Itr implements Iterator<Map.Entry<K,V>> {
+        	
             private Iterator<Map.Entry<K,Source<V>>> itr;
+            
+            /**
+             * Constructs a new Itr.
+             * @param itr the iterator to forward all method calls to
+             */
             public Itr(Iterator<Map.Entry<K,Source<V>>> itr) {
                 this.itr = itr;
             }
