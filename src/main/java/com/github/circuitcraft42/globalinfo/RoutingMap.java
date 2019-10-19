@@ -76,6 +76,7 @@ public class RoutingMap extends AbstractMap<String,Object> {
          * @return
          */
     	public static Source<Object> fromHandle(MethodHandle handle) {
+    		Objects.requireNonNull(handle, "Cannot route to null handle");
             return new HandleSource(handle);
         }
         
@@ -95,6 +96,7 @@ public class RoutingMap extends AbstractMap<String,Object> {
 
 		@Override
 		public T get() {
+			Objects.requireNonNull(selection, "a selection has not yet been made");
 			return mappings.get(selection).get();
 		}
 		
@@ -105,6 +107,9 @@ public class RoutingMap extends AbstractMap<String,Object> {
 		 * @return this MultiSource, for chaining
 		 */
 		public MultiSource<T> register(String name, Source<T> source) {
+			Objects.requireNonNull(name, "null is not a valid registry name");
+			if(mappings.containsKey(name))
+				throw new IllegalStateException("option " + name + " already exists");
 			mappings.put(name, source);
 			return this;
 		}
