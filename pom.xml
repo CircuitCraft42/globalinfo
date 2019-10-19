@@ -21,9 +21,9 @@
   </licenses>
   
   <scm>
-    <url>scm:git:https://github.com/CircuitCraft42/globalinfo.git</url>
+    <url>https://github.com/CircuitCraft42/globalinfo</url>
     <connection>scm:git:https://github.com/CircuitCraft42/globalinfo.git</connection>
-    <developerConnection>https://github.com/CircuitCraft42/globalinfo.git</developerConnection>
+    <developerConnection>scm:git:https://github.com/CircuitCraft42/globalinfo.git</developerConnection>
   </scm>
 
   <properties>
