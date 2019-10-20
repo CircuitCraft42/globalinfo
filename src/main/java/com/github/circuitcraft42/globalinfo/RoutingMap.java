@@ -73,7 +73,7 @@ public class RoutingMap extends AbstractMap<String,Object> {
         /**
          * Creates a Source that transparently invokes the specified MethodHandle.
          * @param handle the handle to be invoked on get. It should take no parameters and return the retrieved value.
-         * @return
+         * @return the source object that will invoke the handle
          */
     	public static Source<Object> fromHandle(MethodHandle handle) {
     		Objects.requireNonNull(handle, "Cannot route to null handle");
@@ -117,8 +117,8 @@ public class RoutingMap extends AbstractMap<String,Object> {
 		/**
 		 * Selects a source for routing. A source can be selected before it is
 		 * added as long as it is chosen under the same name.
-		 * @param name
-		 * @return
+		 * @param name the name of the source to select
+		 * @return this MultiSource, for chaining
 		 */
 		public MultiSource<T> select(String name) {
 			if(selection != null)
